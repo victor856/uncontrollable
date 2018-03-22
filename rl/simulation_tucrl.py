@@ -4,6 +4,8 @@ import operator
 import matplotlib.pyplot as plt
 import random
 import itertools
+from datetime import datetime
+
 
 
 def dict_sum(p):
@@ -20,6 +22,8 @@ def dict_multiply(a,b):
 
 
 def value_iteration(state_space,action_space, p_sample, tk, state_to_index):
+	# random.seed(datetime.now())
+	# random.shuffle(action_space)
 	n_state = len(state_space)
 	value_function = np.zeros(n_state, dtype=np.float32)
 	prev_value_function = np.zeros(n_state, dtype=np.float32)
@@ -64,8 +68,8 @@ def uncontrollable_action(Q):
 	scale = 1
 	action = {}
 	if Q[1] <= threshold and Q[2] <= threshold:
-		action[1] = 0.25 * scale
-		action[2] = 0.25 * scale
+		action[1] = 0.5 * scale
+		action[2] = 0 * scale
 	if Q[1] > threshold and Q[2] <= threshold:
 		action[1] = 0.5 * scale
 		action[2] = 0 * scale
@@ -266,4 +270,4 @@ def main(T,load,V):
 
 
 if __name__ == "__main__":
-    main(T=50000,load=0.95,V=10)
+    main(T=50000,load=0.95,V=5)

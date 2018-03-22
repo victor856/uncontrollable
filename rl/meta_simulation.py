@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 
-T = 100000
+T = 200000
 load = 0.95
 V_set = [3, 10, 15]
 
