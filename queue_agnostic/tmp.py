@@ -85,11 +85,6 @@ def main():
 	plt.plot(range(T), Q_stat)
 	plt.show()
 
-	# plt.plot(range(T), Y_stat)
-	# plt.show()
-
-	# plt.plot(range(T), Z_stat)
-	# plt.show()
 
 if __name__ == "__main__":
     main()
