@@ -79,6 +79,14 @@ def main(load, T):
 	X_stat = np.zeros(T)
 	Y_stat = np.zeros(T)
 	instant_throughput = np.zeros(T)
+	Q_oracle = np.zeros(N)
+	Q_oracle_stat = np.zeros(T)
+	oracle_mu = np.zeros([N,N])
+	oracle_mu[0][4] = 20
+	oracle_mu[4][3] = 20
+	oracle_mu[0][1] = 3
+	oracle_mu[1][2] = 3
+	oracle_mu[2][3] = 3
 	
 	for e in edges:
 		G[e[0]][e[1]] = e[2]
@@ -98,13 +106,14 @@ def main(load, T):
 		new_arrival = np.random.poisson(float(load)*float(rate))
 		Q[src] += new_arrival
 		X[src] += new_arrival
+		Q_oracle[src] += new_arrival
 		mu = maxweight_fic(G,U,X,q)
 		if mu[0][1] >0:
 			ct1 += 1
 		if mu[0][4] > 0:
 			ct4 += 1
 		true_mu = np.zeros([N,N])
-		for i in range(N):
+		for i in range(N):			
 
 			if i not in U:
 				for j in range(N):
@@ -117,6 +126,12 @@ def main(load, T):
 					else:
 						instant_throughput[t] += actual_mu
 					true_mu[i][j] =actual_mu
+					## update oracle queues
+					old_Q_oracle = Q_oracle[i]
+					Q_oracle[i] = np.maximum(Q_oracle[i]-oracle_mu[i][j], 0)
+					actual_mu_oracle = old_Q_oracle - Q_oracle[i]
+					if j != dst:
+						Q_oracle[j] += actual_mu_oracle					
 			else:
 				## uncontrollable nodes take actions
 				next_hop = np.random.choice(elements, 1, p=uncontrollable_policy[i])
@@ -131,6 +146,12 @@ def main(load, T):
 						instant_throughput[t] += actual_mu
 					true_mu[i][next_hop] = actual_mu
 
+					## update oracle queues
+					old_Q_oracle = Q_oracle[i]
+					Q_oracle[i] = np.maximum(Q_oracle[i]-G[i][next_hop], 0)
+					actual_mu_oracle = old_Q_oracle - Q_oracle[i]
+					if next_hop != dst:
+						Q_oracle[next_hop] += actual_mu_oracle
 			
 			for j in range(N):
 				old_X = X[i]
@@ -158,6 +179,7 @@ def main(load, T):
 		q_stat[t] = np.sum(np.abs(q))
 		X_stat[t] = np.sum(X)
 		Y_stat[t] = np.sum(np.abs(Y))
+		Q_oracle_stat[t] = np.sum(Q_oracle)
 
 
 
@@ -167,15 +189,23 @@ def main(load, T):
 
 
 	# print "avg queue length: " + str(float(total_Q)/float(T))
+	upper_bound = np.zeros(T)
+	for t in range(T):
+		if t == 0:
+			continue
+		vt = np.max(Q_oracle_stat[0:t])
+		upper_bound[t] = 10*np.sqrt(vt*t)
 
-
+	
 	plt.xlabel('Time', fontsize=12)
 	plt.ylabel('Queue Length', fontsize=12)
+	plt.yscale('log')
 	line1, = plt.plot(range(T), Q_stat, label='Physical Queue Q')
 	line2, = plt.plot(range(T), X_stat, linestyle=":", label='Virtual Queue X')
 	line3, = plt.plot(range(T), q_stat, linestyle="-.", label='Virtual Queue Y')
 	line4, = plt.plot(range(T), X_stat + q_stat, linestyle="--", label='X+Y')
-	plt.legend(handles=[line1, line2, line3, line4],prop={'size': 12})
+	line5, = plt.plot(range(T), upper_bound, label='Upper Bound')
+	plt.legend(handles=[line1, line2, line3, line4, line5],prop={'size': 12})
 	ymin, ymax = plt.ylim()
 	plt.ylim(ymin=0, ymax=ymax)
 	plt.xlim(xmin=0, xmax=T)
@@ -184,9 +214,10 @@ def main(load, T):
 	plt.show()
 
 
-	true_policy = np.multiply(0.5, np.ones(T))
+	estimated_mu = np.multiply(estimated_mu, 10)
+	true_policy = np.multiply(5, np.ones(T))
 	plt.xlabel('Time', fontsize=12)
-	plt.ylabel('Round-Robin Weight', fontsize=12)
+	plt.ylabel('Allocated Rate', fontsize=12)
 	line1, = plt.plot(range(T), estimated_mu, linestyle="--", label='Estimated Uncontrollable Policy')
 	line2, = plt.plot(range(T), true_policy, label='True Uncontrollable Policy')
 	plt.legend(handles=[line1, line2], prop={'size': 12})
