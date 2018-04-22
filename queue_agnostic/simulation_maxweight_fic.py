@@ -56,16 +56,17 @@ def main(load, T):
 	### topology 3
 	N = 5
 	U = [1,2]
-	edges = [(0,1,50), (1,2,50), (0,4,20), (2,3,10), (4,3,20)]
+	edges = [(0,1,40), (1,2,40), (0,4,20), (2,3,10), (4,3,20), (1,4,40)]
 	uncontrollable_policy = {}
 	for i in U:
 		uncontrollable_policy[i] = np.zeros(N+1)
-	uncontrollable_policy[1][2] = 1
+	uncontrollable_policy[1][2] = 0.5
+	uncontrollable_policy[1][4] = 0.5
 	uncontrollable_policy[2][3] = 0.5
 	uncontrollable_policy[2][N] = 0.5
 	src = 0
 	dst = 3
-	rate = 23
+	rate = 25
 
 
 	elements = range(N+1)
@@ -82,11 +83,12 @@ def main(load, T):
 	Q_oracle = np.zeros(N)
 	Q_oracle_stat = np.zeros(T)
 	oracle_mu = np.zeros([N,N])
-	oracle_mu[0][4] = 20
-	oracle_mu[4][3] = 20
-	oracle_mu[0][1] = 3
-	oracle_mu[1][2] = 3
-	oracle_mu[2][3] = 3
+	oracle_mu[0][4] = 16
+	oracle_mu[4][3] = 25
+	oracle_mu[0][1] = 10
+	oracle_mu[1][2] = 5
+	oracle_mu[1][2] = 5
+	oracle_mu[2][3] = 5
 	
 	for e in edges:
 		G[e[0]][e[1]] = e[2]
@@ -194,37 +196,39 @@ def main(load, T):
 		if t == 0:
 			continue
 		vt = np.max(Q_oracle_stat[0:t])
+		# for adversarial
 		upper_bound[t] = 10*np.sqrt(vt*t)
 
+
 	
-	plt.xlabel('Time', fontsize=12)
-	plt.ylabel('Queue Length', fontsize=12)
-	plt.yscale('log')
-	line1, = plt.plot(range(T), Q_stat, label='Physical Queue Q')
-	line2, = plt.plot(range(T), X_stat, linestyle=":", label='Virtual Queue X')
-	line3, = plt.plot(range(T), q_stat, linestyle="-.", label='Virtual Queue Y')
-	line4, = plt.plot(range(T), X_stat + q_stat, linestyle="--", label='X+Y')
-	line5, = plt.plot(range(T), upper_bound, label='Upper Bound')
-	plt.legend(handles=[line1, line2, line3, line4, line5],prop={'size': 12})
-	ymin, ymax = plt.ylim()
-	plt.ylim(ymin=0, ymax=ymax)
-	plt.xlim(xmin=0, xmax=T)
-	plt.tick_params(axis='x', labelsize=12)
-	plt.tick_params(axis='y', labelsize=12)
-	plt.show()
+	# plt.xlabel('Time', fontsize=12)
+	# plt.ylabel('Queue Length', fontsize=12)
+	# plt.yscale('log')
+	# line1, = plt.plot(range(T), Q_stat, label='Physical Queue Q')
+	# line2, = plt.plot(range(T), X_stat, linestyle=":", label='Virtual Queue X')
+	# line3, = plt.plot(range(T), q_stat, linestyle="-.", label='Virtual Queue Y')
+	# line4, = plt.plot(range(T), X_stat + q_stat, linestyle="--", label='X+Y')
+	# line5, = plt.plot(range(T), upper_bound, label='Upper Bound')
+	# plt.legend(handles=[line1, line2, line3, line4, line5],prop={'size': 12})
+	# ymin, ymax = plt.ylim()
+	# plt.ylim(ymin=0, ymax=ymax)
+	# plt.xlim(xmin=0, xmax=T)
+	# plt.tick_params(axis='x', labelsize=12)
+	# plt.tick_params(axis='y', labelsize=12)
+	# plt.show()
 
 
-	estimated_mu = np.multiply(estimated_mu, 10)
-	true_policy = np.multiply(5, np.ones(T))
-	plt.xlabel('Time', fontsize=12)
-	plt.ylabel('Allocated Rate', fontsize=12)
-	line1, = plt.plot(range(T), estimated_mu, linestyle="--", label='Estimated Uncontrollable Policy')
-	line2, = plt.plot(range(T), true_policy, label='True Uncontrollable Policy')
-	plt.legend(handles=[line1, line2], prop={'size': 12})
-	ymin, ymax = plt.ylim()
-	plt.ylim(ymin=0, ymax=ymax)
-	plt.xlim(xmin=0, xmax=T)
-	plt.show()
+	# estimated_mu = np.multiply(estimated_mu, 10)
+	# true_policy = np.multiply(5, np.ones(T))
+	# plt.xlabel('Time', fontsize=12)
+	# plt.ylabel('Allocated Rate', fontsize=12)
+	# line1, = plt.plot(range(T), estimated_mu, linestyle="--", label='Estimated Uncontrollable Policy')
+	# line2, = plt.plot(range(T), true_policy, label='True Uncontrollable Policy')
+	# plt.legend(handles=[line1, line2], prop={'size': 12})
+	# ymin, ymax = plt.ylim()
+	# plt.ylim(ymin=0, ymax=ymax)
+	# plt.xlim(xmin=0, xmax=T)
+	# plt.show()
 
 	return Q_stat
 

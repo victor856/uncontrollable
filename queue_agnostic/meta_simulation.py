@@ -8,7 +8,7 @@ load_set_fic = np.linspace(0.05,0.99, num=30)
 load_set_fic = load_set_fic.tolist()
 load_set_fic.append(1)
 load_set_fic.append(1.01)
-load_set_max = np.linspace(0.05,0.27, num=20)
+load_set_max = np.linspace(0.05,0.45, num=30)
 load_set_max = load_set_max.tolist()
 T=5000
 Q_stat_fic = np.zeros(len(load_set_fic))

@@ -65,16 +65,17 @@ def main(load, T):
  	### topology 3
 	N = 5
 	U = [1,2]
-	edges = [(0,1,50), (1,2,50), (0,4,20), (2,3,10), (4,3,20)]
+	edges = [(0,1,40), (1,2,40), (0,4,20), (2,3,10), (4,3,20), (1,4,40)]
 	uncontrollable_policy = {}
 	for i in U:
 		uncontrollable_policy[i] = np.zeros(N+1)
-	uncontrollable_policy[1][2] = 1
+	uncontrollable_policy[1][2] = 0.5
+	uncontrollable_policy[1][4] = 0.5
 	uncontrollable_policy[2][3] = 0.5
 	uncontrollable_policy[2][N] = 0.5
 	src = 0
 	dst = 3
-	rate = 23
+	rate = 25
 
 
 	elements = range(N+1)
