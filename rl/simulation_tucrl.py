@@ -279,4 +279,4 @@ def main(T,load,V):
 
 
 if __name__ == "__main__":
-    main(T=50000,load=0.95,V=10)
+    main(T=200000,load=0.95,V=10)
