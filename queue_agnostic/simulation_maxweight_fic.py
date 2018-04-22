@@ -218,22 +218,22 @@ def main(load, T):
 	# plt.show()
 
 
-	# estimated_mu = np.multiply(estimated_mu, 10)
-	# true_policy = np.multiply(5, np.ones(T))
-	# plt.xlabel('Time', fontsize=12)
-	# plt.ylabel('Allocated Rate', fontsize=12)
-	# line1, = plt.plot(range(T), estimated_mu, linestyle="--", label='Estimated Uncontrollable Policy')
-	# line2, = plt.plot(range(T), true_policy, label='True Uncontrollable Policy')
-	# plt.legend(handles=[line1, line2], prop={'size': 12})
-	# ymin, ymax = plt.ylim()
-	# plt.ylim(ymin=0, ymax=ymax)
-	# plt.xlim(xmin=0, xmax=T)
-	# plt.show()
+	estimated_mu = np.multiply(estimated_mu, 1)
+	true_policy = np.multiply(0.5, np.ones(T))
+	plt.xlabel('Time', fontsize=12)
+	plt.ylabel('Service Probability', fontsize=12)
+	line1, = plt.plot(range(T), estimated_mu, linestyle="--", label='Estimated Uncontrollable Policy')
+	line2, = plt.plot(range(T), true_policy, label='True Uncontrollable Policy')
+	plt.legend(handles=[line1, line2], prop={'size': 12})
+	ymin, ymax = plt.ylim()
+	plt.ylim(ymin=0, ymax=ymax)
+	plt.xlim(xmin=0, xmax=T)
+	plt.show()
 
 	return Q_stat
 
 if __name__ == "__main__":
-    main(load=0.99, T=5000)
+    main(load=0.95, T=5000)
 
 
 

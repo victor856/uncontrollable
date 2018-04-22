@@ -89,12 +89,12 @@ def main(load, T):
 	Y_stat = np.zeros(T)
 	for e in edges:
 		G[e[0]][e[1]] = e[2]
-		G[e[1]][e[0]] = e[2]
 
 	for t in range(T):
 		print t
 		### create new arrivals
-		new_arrival = np.random.poisson(load*rate)
+		new_arrival = np.random.poisson(float(load)*float(rate))
+		print new_arrival
 		Q[src] += new_arrival
 		mu = maxweight(G,Q,U)
 		true_mu = np.zeros([N,N])
@@ -121,7 +121,6 @@ def main(load, T):
 
 		Q_stat[t] = np.sum(Q)
 
-
 	# plt.plot(range(T), Q_stat)
 	# plt.show()
 
@@ -129,7 +128,7 @@ def main(load, T):
 
 
 if __name__ == "__main__":
-    main(load=0.2, T=5000)
+    main(load=0.35, T=5000)
 
 
 
