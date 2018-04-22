@@ -266,8 +266,17 @@ def main(T,load,V):
 	# plt.plot(t_checkpoint, throughput_checkpint)
 	# plt.show()
 
+	with open("queue_vector.csv",'w+') as f:
+		print("writing queue length vector to file...")
+	with open("queue_vector.csv",'a') as f:
+		for i in range(len(Q_vector_checkpoint)):
+			vec = Q_vector_checkpoint[i]
+			f.write("%s,%s" % (vec[0], vec[1]))
+			if i < len(Q_vector_checkpoint) - 1:
+				f.write("\n")
+
 	return (t_checkpoint, Q_checkpoint, loss_rate_checkpoint, throughput_checkpoint)
 
 
 if __name__ == "__main__":
-    main(T=50000,load=0.95,V=5)
+    main(T=50000,load=0.95,V=10)
