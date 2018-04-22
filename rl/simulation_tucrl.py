@@ -148,7 +148,7 @@ def main(T,load,V):
 		q1_lower = np.maximum(s[0] - B, 0)
 		q2_lower = np.maximum(s[1] - B, 0)
 		for a in action_space:
-			alpha[(s,a)] = np.zeros(len(state_space), dtype=np.float32)
+			alpha[(s,a)] = np.ones(len(state_space), dtype=np.float32)
 			for i in range(q1_lower, q1_upper):
 				for j in range(q2_lower, q2_upper):
 					index = state_to_index[(i,j)]
@@ -267,7 +267,7 @@ def main(T,load,V):
 	# plt.show()
 
 	with open("queue_vector.csv",'w+') as f:
-		print("writing queue length vector to file...")
+		f.write("Q2,Q3\n")
 	with open("queue_vector.csv",'a') as f:
 		for i in range(len(Q_vector_checkpoint)):
 			vec = Q_vector_checkpoint[i]
@@ -279,4 +279,4 @@ def main(T,load,V):
 
 
 if __name__ == "__main__":
-    main(T=200000,load=0.95,V=10)
+    main(T=50000,load=0.95,V=10)
