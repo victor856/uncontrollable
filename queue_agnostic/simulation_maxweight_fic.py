@@ -53,7 +53,7 @@ def main(load, T):
 	# dst = 2
 	# rate = 100
 
-	### topology 3
+	## topology 3
 	N = 5
 	U = [1,2]
 	edges = [(0,1,40), (1,2,40), (0,4,20), (2,3,10), (4,3,20), (1,4,40)]
@@ -68,13 +68,30 @@ def main(load, T):
 	dst = 3
 	rate = 25
 
+	# N = 5
+	# U = [1,2]
+	# edges = [(0,1,40), (1,2,40), (2,3,10), (4,3,20), (0,4,40)]
+	# uncontrollable_policy = {}
+	# for i in U:
+	# 	uncontrollable_policy[i] = np.zeros(N+1)
+	# uncontrollable_policy[1][2] = 1
+	# uncontrollable_policy[2][3] = 0.5
+	# uncontrollable_policy[2][N] = 0.5
+	# src = 0
+	# dst = 3
+	# rate = 20	
+
 
 	elements = range(N+1)
 	Q = np.zeros(N)
 	q = np.zeros([N,N])
 	X = np.zeros(N)
 	Y = np.zeros(N)
+	Z = np.zeros(N)
+	W = np.zeros(N)
 	G = np.zeros([N,N])
+	X_his = np.zeros([T,N])
+	Q_his = np.zeros([T,N])
 	Q_stat = np.zeros(T)
 	q_stat = np.zeros(T)
 	X_stat = np.zeros(T)
@@ -102,6 +119,7 @@ def main(load, T):
 	total_Q = 0
 	ct1 = 0
 	ct4 = 0
+	hm = np.zeros(N)
 	for t in range(T):
 		print t
 		### create new arrivals
@@ -115,19 +133,21 @@ def main(load, T):
 		if mu[0][4] > 0:
 			ct4 += 1
 		true_mu = np.zeros([N,N])
+		true_mu_offer = np.zeros([N,N])
+		emulated_mu_actual = np.zeros([N,N])
+		lag_X = X.copy()
+		lag_Q = Q.copy()
 		for i in range(N):			
-
 			if i not in U:
 				for j in range(N):
-					true_mu[i][j] = mu[i][j]
-					old_Q = Q[i]
-					Q[i] = np.maximum(Q[i]-mu[i][j], 0)
-					actual_mu = old_Q - Q[i]
+					true_mu_offer[i][j] = mu[i][j]
+					actual_mu = Q[i] - np.maximum(Q[i]-mu[i][j], 0)
+					Q[i] -= actual_mu
 					if j != dst:
 						Q[j] += actual_mu
 					else:
 						instant_throughput[t] += actual_mu
-					true_mu[i][j] =actual_mu
+					true_mu[i][j] = actual_mu
 					## update oracle queues
 					old_Q_oracle = Q_oracle[i]
 					Q_oracle[i] = np.maximum(Q_oracle[i]-oracle_mu[i][j], 0)
@@ -138,10 +158,9 @@ def main(load, T):
 				## uncontrollable nodes take actions
 				next_hop = np.random.choice(elements, 1, p=uncontrollable_policy[i])
 				if next_hop != N:
-					true_mu[i][next_hop] = G[i][next_hop]
-					old_Q = Q[i]
-					Q[i] = np.maximum(Q[i]-G[i][next_hop], 0)
-					actual_mu = old_Q - Q[i]
+					true_mu_offer[i][next_hop] = G[i][next_hop]
+					actual_mu = Q[i] - np.maximum(Q[i]-G[i][next_hop], 0)
+					Q[i] -= actual_mu
 					if next_hop != dst:
 						Q[next_hop] += actual_mu
 					else:
@@ -156,19 +175,18 @@ def main(load, T):
 						Q_oracle[next_hop] += actual_mu_oracle
 			
 			for j in range(N):
-				old_X = X[i]
-				X[i] = np.maximum(X[i]-mu[i][j], 0)
-				actual_mu = old_X - X[i]
+				actual_mu = X[i] - np.maximum(X[i]-mu[i][j], 0)
+				X[i] -= actual_mu
 				if j != dst:
 					X[j] += actual_mu
-				mu[i][j] = actual_mu
-				
+				emulated_mu_actual[i][j] = actual_mu
 
-		# ## update debt queue
-		for i in range(N):
+		## update debt queue
+		for i in U:
 			for j in range(N):
 				q[i][j] = q[i][j] + mu[i][j] - true_mu[i][j]
-
+		# Z[2] += true_mu[2][3]
+		# print Z[2]/t
 
 		total_mu += mu[2][3]
 		total_mu_true += true_mu[2][3]
@@ -180,8 +198,12 @@ def main(load, T):
 		Q_stat[t] = np.sum(Q)
 		q_stat[t] = np.sum(np.abs(q))
 		X_stat[t] = np.sum(X)
-		Y_stat[t] = np.sum(np.abs(Y))
+		Y_stat[t] = np.sum(Y)
 		Q_oracle_stat[t] = np.sum(Q_oracle)
+
+		# if t > 0:
+		# 	print np.sum(delta_Q)
+		# 	print Q_stat[t] - Q_stat[t-1]
 
 
 
@@ -200,35 +222,37 @@ def main(load, T):
 		upper_bound[t] = 10*np.sqrt(vt*t)
 
 
-	
+	# f = plt.figure()
 	# plt.xlabel('Time', fontsize=12)
 	# plt.ylabel('Queue Length', fontsize=12)
 	# plt.yscale('log')
 	# line1, = plt.plot(range(T), Q_stat, label='Physical Queue Q')
 	# line2, = plt.plot(range(T), X_stat, linestyle=":", label='Virtual Queue X')
-	# line3, = plt.plot(range(T), q_stat, linestyle="-.", label='Virtual Queue Y')
-	# line4, = plt.plot(range(T), X_stat + q_stat, linestyle="--", label='X+Y')
-	# line5, = plt.plot(range(T), upper_bound, label='Upper Bound')
-	# plt.legend(handles=[line1, line2, line3, line4, line5],prop={'size': 12})
+	# line3, = plt.plot(range(T), q_stat, linestyle="-.", label='Virtual Queue |Y|')
+	# # line4, = plt.plot(range(T), X_stat + q_stat, linestyle="--", label='X+|Y|')
+	# line5, = plt.plot(range(T), upper_bound, linestyle="--", label='Upper Bound')
+	# plt.legend(handles=[line1, line2, line3, line5],prop={'size': 12})
 	# ymin, ymax = plt.ylim()
-	# plt.ylim(ymin=0, ymax=ymax)
+	# plt.ylim(ymin=1, ymax=ymax)
 	# plt.xlim(xmin=0, xmax=T)
 	# plt.tick_params(axis='x', labelsize=12)
 	# plt.tick_params(axis='y', labelsize=12)
 	# plt.show()
+	# f.savefig('tmw_queue_upper_bound.pdf', bbox_inches='tight')
 
-
+	f = plt.figure()
 	estimated_mu = np.multiply(estimated_mu, 1)
 	true_policy = np.multiply(0.5, np.ones(T))
 	plt.xlabel('Time', fontsize=12)
 	plt.ylabel('Service Probability', fontsize=12)
-	line1, = plt.plot(range(T), estimated_mu, linestyle="--", label='Estimated Uncontrollable Policy')
-	line2, = plt.plot(range(T), true_policy, label='True Uncontrollable Policy')
+	line1, = plt.plot(range(T), estimated_mu, linestyle="--", label='Imagined uncontrollable action by TMW')
+	line2, = plt.plot(range(T), true_policy, label='Actual uncontrollable action')
 	plt.legend(handles=[line1, line2], prop={'size': 12})
 	ymin, ymax = plt.ylim()
 	plt.ylim(ymin=0, ymax=ymax)
 	plt.xlim(xmin=0, xmax=T)
 	plt.show()
+	f.savefig('tmw_estimation.pdf', bbox_inches='tight')
 
 	return Q_stat
 
